@@ -1,0 +1,262 @@
+#!/bin/bash
+clear
+
+# Checking if user is root.
+
+if [ "$(id -u)" != "0" ]; then
+	echo
+	echo "This script must be run as root." 1>&2
+	echo
+	exit 1
+fi
+
+echo
+echo "Is the OS on this server  Debian? If not, quit or continue at own risk."
+echo "And don't report a bug if it doesn't work. Press any key to continue."
+echo
+read -p "Press [Enter] to continue..." -n 1
+echo
+
+# Prompting for system user.
+
+con=0
+while [ $con -eq 0 ]; do
+
+        echo -n "Please type a valid system user: "
+        read -e user
+        uid=$(cat /etc/passwd | grep "$user": | cut -d: -f3)
+
+        if [ -z $(cat /etc/passwd | grep "$user":) ]; then
+                echo
+                echo "This user does not exist!"
+
+        elif [ $uid -lt 999 ]; then
+                echo
+                echo "That user's UID is too low!"
+
+        elif [ $user == nobody ]; then
+                echo
+                echo "You cant use 'nobody' as user!"
+        else
+                con=1
+        fi
+done
+
+homedir=$(cat /etc/passwd | grep "$user": | cut -d: -f6)
+
+# Installing dependencies
+
+apt-get update
+apt-get install openssl git subversion apache2 apache2-utils build-essential libsigc++-2.0-dev libcurl4-openssl-dev automake libtool libcppunit-dev libncurses5-dev libapache2-mod-scgi php5 php5-curl php5-cli libapache2-mod-php5 screen unrar-free unzip
+
+# Installing xmlrpc-c
+
+svn checkout http://svn.code.sf.net/p/xmlrpc-c/code/stable xmlrpc-c
+cd xmlrpc-c
+./configure --disable-cplusplus
+make
+make install
+cd ..
+rm -rv xmlrpc-c
+
+mkdir rtorrent
+cd rtorrent
+
+# Installing libtorrent.
+
+wget http://libtorrent.rakshasa.no/downloads/libtorrent-0.13.4.tar.gz
+tar -zxvf libtorrent-0.13.4.tar.gz
+cd libtorrent-0.13.4
+./autogen.sh
+./configure
+make
+make install
+cd ..
+
+# Installing rtorrent.
+
+wget http://libtorrent.rakshasa.no/downloads/rtorrent-0.9.4.tar.gz
+tar -zxvf rtorrent-0.9.4.tar.gz
+cd rtorrent-0.9.4
+./autogen.sh
+./configure --with-xmlrpc-c
+make
+make install
+cd ../..
+rm -rv rtorrent
+
+ldconfig
+
+# Creating session directory
+
+if [ ! -d "$homedir"/.rtorrent-session ]; then
+	mkdir "$homedir"/.rtorrent-session
+	chown "$user"."$user" "$homedir"/.rtorrent-session
+else
+	chown "$user"."$user" "$homedir"/.rtorrent-session
+fi
+
+# Creating downloads folder
+
+if [ ! -d "$homedir"/Downloads ]; then
+	mkdir "$homedir"/Downloads
+	chown "$user"."$user" "$homedir"/Downloads
+else
+	chown "$user"."$user" "$homedir"/Downloads
+fi
+
+# Downloading rtorrent.rc file.
+
+wget -O $homedir/.rtorrent.rc https://raw.github.com/Kerwood/rtorrent.auto.install/master/Files/rtorrent.rc
+
+chown "$user"."$user" $homedir/.rtorrent.rc
+
+sed -i "s@HOMEDIRHERE@$homedir@g" $homedir/.rtorrent.rc 
+
+# Adding SCGIMount to apache2.conf
+
+if [ -z "$(cat /etc/apache2/apache2.conf | grep 'SCGIMount /RPC2 127.0.0.1:5000')" ]; then
+echo "
+# rutorrent
+SCGIMount /RPC2 127.0.0.1:5000" >> /etc/apache2/apache2.conf
+fi
+
+# Creating symlink for scgi.load
+
+if [ ! -h /etc/apache2/mods-enabled/scgi.load ]; then
+
+        ln -s /etc/apache2/mods-available/scgi.load /etc/apache2/mods-enabled/scgi.load
+fi
+
+# Installing rutorrent.
+
+# wget http://dl.bintray.com/novik65/generic/rutorrent-3.6.tar.gz
+# tar -zxvf rutorrent-3.6.tar.gz
+
+# if [ -d /var/www/rutorrent ]; then
+# 	rm -r /var/www/rutorrent
+# fi
+
+# mv -f rutorrent /var/www/
+# rm -v rutorrent-3.6.tar.gz
+
+mkdir /var/www/ 
+cd /var/www/
+
+svn checkout http://rutorrent.googlecode.com/svn/trunk/rutorrent/
+
+cd rutorrent
+rm -R plugins
+svn checkout http://rutorrent.googlecode.com/svn/trunk/plugins/
+
+cd /var/www/rutorrent/plugins/
+svn co http://rutorrent-chat.googlecode.com/svn/trunk/ chat
+
+cd /var/www/rutorrent/plugins/
+svn co http://rutorrent-logoff.googlecode.com/svn/trunk/ logoff
+
+cd /var/www/rutorrent/plugins/
+wget http://rutorrent-tadd-labels.googlecode.com/files/lbll-suite_0.8.1.tar.gz
+tar zxfv lbll-suite_0.8.1.tar.gz
+rm lbll-suite_0.8.1.tar.gz
+
+cd /var/www/rutorrent/plugins/
+svn co http://rutorrent-pausewebui.googlecode.com/svn/trunk/ pausewebui
+
+cd /var/www/rutorrent/plugins/
+svn co http://svn.rutorrent.org/svn/filemanager/trunk/filemanager
+
+apt-get -y install php5-geoip ffmpeg curl libzen0 libmediainfo0 mediainfo
+
+apt-get install zip
+
+apt-get install rar
+
+
+# Changeing permissions for rutorrent and plugins.
+
+chown -R www-data.www-data /var/www/rutorrent
+chmod -R 775 /var/www/rutorrent
+
+# Creating login - htaccess
+
+echo 'AuthUserFile /var/www/rutorrent/.htpasswd
+AuthName "Qui donne le mot magique"
+AuthType Basic
+Require Valid-User' > /var/www/rutorrent/.htaccess
+
+# Creating Apache virtual host
+
+if [ ! -f /etc/apache2/sites-available/rutorrent.script.conf ]; then
+
+echo "<VirtualHost *:80>
+
+	ServerName *
+	ServerAlias *
+
+        DocumentRoot /var/www/
+
+        CustomLog /var/log/apache2/rutorrent.log vhost_combined
+
+        ErrorLog /var/log/apache2/rutorrent_error.log
+
+        <Directory /var/www/rutorrent/>
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride AuthConfig
+                Order allow,deny
+                allow from all
+        </Directory>
+</VirtualHost>" > /etc/apache2/sites-available/rutorrent.script.conf
+
+a2ensite rutorrent.script.conf
+
+fi
+
+# Creating user for webinterface.
+
+echo -n "Please type the username for the webinterface, system user not required: "
+read -e htauser
+
+while true; do
+
+	htpasswd -c /var/www/rutorrent/.htpasswd "$htauser"
+	if [ $? = 0 ]; then
+		break
+	fi
+done
+
+# Downloading and installing rtorrent init script.
+
+wget -O /etc/init.d/rtorrent-init https://raw.github.com/Kerwood/rtorrent.auto.install/master/Files/rtorrent-init
+
+chmod +x /etc/init.d/rtorrent-init
+
+sed -i "s/USERNAMEHERE/$user/g" /etc/init.d/rtorrent-init
+
+update-rc.d rtorrent-init defaults
+
+service apache2 restart
+
+echo -e "\033[0;32;148mInstallation is complete..\033[39m"
+echo
+
+service rtorrent-init start
+
+echo -e "\033[0;32;148m Done..\033[39m"
+echo
+echo -e "\033[1;34;148mYour downloads is put in the 'Downloads' folder, sessions data in '.rtorrent-session' and 
+rtorrent's configuration file is '.rtorrent.rc', all in your home directory.\033[39m"
+echo
+echo -e "\033[1;34;148mIf you want to change configuration for rtorrent, such as download folder, port, etc., 
+you will need to edit the '.rtorrent.rc' file. E.g. 'nano $homedir/.rtorrent.rc'\033[39m"
+tput sgr0
+echo
+
+if [ -z "$(ip addr | grep eth0)" ]; then
+	echo "Visit rutorrent at http://IP.ADDRESS/rutorrent" 
+else
+	ip=$(ip addr | grep eth0 | grep inet | awk '{print $2}' | cut -d/ -f1)
+	echo "Visit rutorrent at http://$ip/rutorrent"
+fi
+echo
+echo -e "\033[0;32;148mPatrick Kerwood - http://LinuxBloggen.dk\033[39m"
