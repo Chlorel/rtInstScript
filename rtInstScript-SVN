@@ -60,6 +60,12 @@ read -e dldir
 apt-get update
 apt-get install openssl git subversion apache2 apache2-utils build-essential libsigc++-2.0-dev libcurl4-openssl-dev automake libtool libcppunit-dev libncurses5-dev libapache2-mod-scgi php5 php5-curl php5-cli libapache2-mod-php5 screen unrar-free unzip
 
+# Enable ssl
+
+a2enmod ssl
+a2ensite default-ssl
+service apache2 reload
+
 # Installing xmlrpc-c
 
 svn checkout http://svn.code.sf.net/p/xmlrpc-c/code/stable xmlrpc-c

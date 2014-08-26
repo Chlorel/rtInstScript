@@ -9,3 +9,7 @@ Install apache2 with php & ssl support
 
 Using SVN to install ruTorrent & ruTorrent/plugins
 
+command to get the file to your server
+wget --no-check-certificate https://raw.github.com/Chlorel/rtInstScript/master/rtInstScript-SVN
+chmod +x ./rtInstScript-SVN
+./rtInstScript-SVN
