@@ -102,11 +102,11 @@ fi
 
 # Creating downloads folder
 
-if [ ! -d "$homedir"/Downloads ]; then
-	mkdir "$homedir"/Downloads
-	chown "$user"."$user" "$homedir"/Downloads
+if [ ! -d "$homedir"/"$dldir" ]; then
+	mkdir "$homedir"/"$dldir"
+	chown "$user"."$user" "$homedir"/"$dldir"
 else
-	chown "$user"."$user" "$homedir"/Downloads
+	chown "$user"."$user" "$homedir"/"$dldir"
 fi
 
 # Downloading rtorrent.rc file.
