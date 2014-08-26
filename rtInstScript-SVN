@@ -11,8 +11,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 echo
-echo "Is the OS on this server  Debian? If not, quit or continue at own risk."
-echo "And don't report a bug if it doesn't work. Press any key to continue."
+echo "Is the OS on this server Debian 7 ? If not, quit or continue at own risk."
 echo
 read -p "Press [Enter] to continue..." -n 1
 echo
@@ -107,7 +106,7 @@ fi
 
 # Downloading rtorrent.rc file.
 
-wget -O $homedir/.rtorrent.rc https://raw.github.com/Kerwood/rtorrent.auto.install/master/Files/rtorrent.rc
+wget -O $homedir/.rtorrent.rc https://raw.github.com/Chlorel/rtInstScript/master/conf/rtorrent.rc
 
 chown "$user"."$user" $homedir/.rtorrent.rc
 
@@ -227,7 +226,7 @@ done
 
 # Downloading and installing rtorrent init script.
 
-wget -O /etc/init.d/rtorrent-init https://raw.github.com/Kerwood/rtorrent.auto.install/master/Files/rtorrent-init
+wget -O /etc/init.d/rtorrent-init https://raw.github.com/Chlorel/rtInstScript/master/conf/rtorrent-init
 
 chmod +x /etc/init.d/rtorrent-init
 
@@ -259,4 +258,4 @@ else
 	echo "Visit rutorrent at http://$ip/rutorrent"
 fi
 echo
-echo -e "\033[0;32;148mPatrick Kerwood - http://LinuxBloggen.dk\033[39m"
+echo -e "\033[0;32;148mChlorel - Chromosome\033[39m"
