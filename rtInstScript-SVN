@@ -43,6 +43,11 @@ done
 
 homedir=$(cat /etc/passwd | grep "$user": | cut -d: -f6)
 
+# Prompting for default file location
+
+echo -n "Please type your prefered download directory: "
+read -e dldir
+
 # Installing dependencies
 
 apt-get update
@@ -110,6 +115,7 @@ wget -O $homedir/.rtorrent.rc https://raw.github.com/Chlorel/rtInstScript/master
 
 chown "$user"."$user" $homedir/.rtorrent.rc
 
+sed -i "s@DOWNLOADDIRHERE@$dldir@g" $homedir/.rtorrent.rc 
 sed -i "s@HOMEDIRHERE@$homedir@g" $homedir/.rtorrent.rc 
 
 # Adding SCGIMount to apache2.conf
@@ -129,20 +135,12 @@ fi
 
 # Installing rutorrent.
 
-# wget http://dl.bintray.com/novik65/generic/rutorrent-3.6.tar.gz
-# tar -zxvf rutorrent-3.6.tar.gz
-
-# if [ -d /var/www/rutorrent ]; then
-# 	rm -r /var/www/rutorrent
-# fi
-
-# mv -f rutorrent /var/www/
-# rm -v rutorrent-3.6.tar.gz
-
 mkdir /var/www/ 
 cd /var/www/
 
 svn checkout http://rutorrent.googlecode.com/svn/trunk/rutorrent/
+
+# Installing rutorrent plugins
 
 cd rutorrent
 rm -R plugins
@@ -165,12 +163,9 @@ svn co http://rutorrent-pausewebui.googlecode.com/svn/trunk/ pausewebui
 cd /var/www/rutorrent/plugins/
 svn co http://svn.rutorrent.org/svn/filemanager/trunk/filemanager
 
-apt-get -y install php5-geoip ffmpeg curl libzen0 libmediainfo0 mediainfo
+# Updating some dependencies is not done ...
 
-apt-get install zip
-
-apt-get install rar
-
+apt-get -y install php5-geoip ffmpeg curl libzen0 libmediainfo0 mediainfo zip rar
 
 # Changeing permissions for rutorrent and plugins.
 
@@ -187,28 +182,25 @@ Require Valid-User' > /var/www/rutorrent/.htaccess
 # Creating Apache virtual host
 
 if [ ! -f /etc/apache2/sites-available/rutorrent.script.conf ]; then
+	echo "<VirtualHost *:80>
 
-echo "<VirtualHost *:80>
+		ServerName *
+		ServerAlias *
 
-	ServerName *
-	ServerAlias *
+			DocumentRoot /var/www/
 
-        DocumentRoot /var/www/
+			CustomLog /var/log/apache2/rutorrent.log vhost_combined
 
-        CustomLog /var/log/apache2/rutorrent.log vhost_combined
+			ErrorLog /var/log/apache2/rutorrent_error.log
 
-        ErrorLog /var/log/apache2/rutorrent_error.log
-
-        <Directory /var/www/rutorrent/>
-                Options Indexes FollowSymLinks MultiViews
-                AllowOverride AuthConfig
-                Order allow,deny
-                allow from all
-        </Directory>
-</VirtualHost>" > /etc/apache2/sites-available/rutorrent.script.conf
-
-a2ensite rutorrent.script.conf
-
+			<Directory /var/www/rutorrent/>
+					Options Indexes FollowSymLinks MultiViews
+					AllowOverride AuthConfig
+					Order allow,deny
+					allow from all
+			</Directory>
+	</VirtualHost>" > /etc/apache2/sites-available/rutorrent.script.conf
+	a2ensite rutorrent.script.conf
 fi
 
 # Creating user for webinterface.
