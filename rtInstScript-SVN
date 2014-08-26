@@ -1,6 +1,13 @@
 #!/bin/bash
 clear
 
+#
+# command to get the file to your server
+# wget --no-check-certificate https://raw.github.com/Chlorel/rtInstScript/master/rtInstScript-SVN
+# chmod +x ./rtInstScript-SVN
+# ./rtInstScript-SVN
+#
+
 # Checking if user is root.
 
 if [ "$(id -u)" != "0" ]; then
