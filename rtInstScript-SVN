@@ -174,6 +174,13 @@ rm lbll-suite_0.8.1.tar.gz
 cd /var/www/rutorrent/plugins/
 svn co http://rutorrent-pausewebui.googlecode.com/svn/trunk/ pausewebui
 
+# Installing rationcolor plugins
+
+cd /var/www/rutorrent/plugins
+git clone git://github.com/Gyran/rutorrent-ratiocolor.git
+mv rutorrent-ratiocolor ratiocolor
+sed -i -e "s/cell-background/font/g" /var/www/rutorrent/plugins/ratiocolor/init.js
+
 #installing filemanager plugins
 
 cd /var/www/rutorrent/plugins/
@@ -193,8 +200,7 @@ chown www-data: /"$homedir"/public_html/stream/view.php
 
 ip=$(ip addr | grep eth0 | grep inet | awk '{print $2}' | cut -d/ -f1)
 
-$streampath = 'http://"$ip"/~"$user"'
-sed -i "s/mydomain.com/$streampath/g" /var/www/rutorrent/plugins/mediastream/conf.php
+sed -i -e "s/mydomain.com/${ip}/g"  -e "s/aa/bb/g" /var/www/rutorrent/plugins/mediastream/conf.php
 
 # Updating some dependencies is not done ...
 
@@ -208,7 +214,7 @@ chmod -R 775 /var/www/rutorrent
 # Creating login - htaccess
 
 echo 'AuthUserFile /var/www/rutorrent/.htpasswd
-AuthName "Qui donne le mot magique"
+AuthName "Zone d'aministration"
 AuthType Basic
 Require Valid-User' > /var/www/rutorrent/.htaccess
 
