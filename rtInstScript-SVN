@@ -131,13 +131,6 @@ chown "$user"."$user" $homedir/.rtorrent.rc
 sed -i "s@DOWNLOADDIRHERE@$dldir@g" $homedir/.rtorrent.rc 
 sed -i "s@HOMEDIRHERE@$homedir@g" $homedir/.rtorrent.rc 
 
-# Adding SCGIMount to apache2.conf
-
-if [ -z "$(cat /etc/apache2/apache2.conf | grep 'SCGIMount /RPC2 127.0.0.1:5000')" ]; then
-echo "
-# rutorrent
-SCGIMount /RPC2 127.0.0.1:5000" >> /etc/apache2/apache2.conf
-fi
 
 # Creating symlink for scgi.load
 
