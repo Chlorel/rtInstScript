@@ -187,20 +187,20 @@ cd /var/www/rutorrent/plugins/
 svn co -q http://svn.rutorrent.org/svn/filemanager/trunk/filemanager
 
 # Installing mediastream plugins
+#
+#cd /var/www/rutorrent/plugins/
+#svn co -q http://svn.rutorrent.org/svn/filemanager/trunk/mediastream
 
-cd /var/www/rutorrent/plugins/
-svn co -q http://svn.rutorrent.org/svn/filemanager/trunk/mediastream
+#mkdir -p /"$homedir"/public_html/
+#mkdir -p /"$homedir"/public_html/stream/
 
-mkdir -p /"$homedir"/public_html/
-mkdir -p /"$homedir"/public_html/stream/
+#ln -s /var/www/rutorrent/plugins/mediastream/view.php /"$homedir"/public_html/stream/view.php
+#chown www-data: /"$homedir"/public_html/stream
+#chown www-data: /"$homedir"/public_html/stream/view.php
 
-ln -s /var/www/rutorrent/plugins/mediastream/view.php /"$homedir"/public_html/stream/view.php
-chown www-data: /"$homedir"/public_html/stream
-chown www-data: /"$homedir"/public_html/stream/view.php
+#ip=$(ip addr | grep eth0 | grep inet | awk '{print $2}' | cut -d/ -f1)
 
-ip=$(ip addr | grep eth0 | grep inet | awk '{print $2}' | cut -d/ -f1)
-
-sed -i -e "s/mydomain.com/${ip}/g"  -e "s/aa/bb/g" /var/www/rutorrent/plugins/mediastream/conf.php
+#sed -i -e "s/mydomain.com/${ip}/g"  -e "s/aa/bb/g" /var/www/rutorrent/plugins/mediastream/conf.php
 
 # Updating some dependencies is not done ...
 
@@ -214,7 +214,7 @@ chmod -R 775 /var/www/rutorrent
 # Creating login - htaccess
 
 echo 'AuthUserFile /var/www/rutorrent/.htpasswd
-AuthName "Zone d'aministration"
+AuthName "Zone Administration"
 AuthType Basic
 Require Valid-User' > /var/www/rutorrent/.htaccess
 
