@@ -58,6 +58,7 @@ read -e dldir
 # Installing dependencies
 
 apt-get update
+apt-get upgrade
 apt-get install openssl git subversion apache2 apache2-utils build-essential libsigc++-2.0-dev libcurl4-openssl-dev automake libtool libcppunit-dev libncurses5-dev libapache2-mod-scgi php5 php5-curl php5-cli libapache2-mod-php5 screen unrar-free unzip
 
 # Enable ssl
@@ -186,6 +187,27 @@ sed -i -e "s/cell-background/font/g" /var/www/rutorrent/plugins/ratiocolor/init.
 cd /var/www/rutorrent/plugins/
 svn co -q http://svn.rutorrent.org/svn/filemanager/trunk/filemanager
 
+# Installing mktorrent alternative to create .torrent
+
+cd /root
+mkdir tmp
+cd tmp
+wget http://downloads.sourceforge.net/mktorrent/mktorrent-1.0.tar.gz 
+tar -xvzf mktorrent-1.0.tar.gz 
+rm *.tar.gz 
+cd mktorrent-1.0 
+make USE_OPENSSL=1 USE_LONG_OPTIONS=1 USE_LARGE_FILES=1 
+make install 
+
+#nano  /var/www/rutorrent/plugins/create/conf.php
+#
+#	$useExternal = false;
+#	pathToCreatetorrent = '';
+#
+#	$useExternal = 'mktorrent';
+#	$pathToCreatetorrent = '/usr/local/bin/mktorrent';
+#
+
 # Installing mediastream plugins
 #
 #cd /var/www/rutorrent/plugins/
@@ -200,7 +222,7 @@ svn co -q http://svn.rutorrent.org/svn/filemanager/trunk/filemanager
 
 #ip=$(ip addr | grep eth0 | grep inet | awk '{print $2}' | cut -d/ -f1)
 
-#sed -i -e "s/mydomain.com/${ip}/g"  -e "s/aa/bb/g" /var/www/rutorrent/plugins/mediastream/conf.php
+#sed -i -e "s/mydomain.com/${ip}/g" /var/www/rutorrent/plugins/mediastream/conf.php
 
 # Updating some dependencies is not done ...
 
@@ -222,23 +244,23 @@ Require Valid-User' > /var/www/rutorrent/.htaccess
 
 if [ ! -f /etc/apache2/sites-available/rutorrent.script.conf ]; then
 	echo "<VirtualHost *:80>
+	ServerName *
+	ServerAlias *
 
-		ServerName *
-		ServerAlias *
+		DocumentRoot /var/www/
 
-			DocumentRoot /var/www/
+		CustomLog /var/log/apache2/rutorrent.log vhost_combined
 
-			CustomLog /var/log/apache2/rutorrent.log vhost_combined
+		ErrorLog /var/log/apache2/rutorrent_error.log
 
-			ErrorLog /var/log/apache2/rutorrent_error.log
+		<Directory /var/www/rutorrent/>
+				Options Indexes FollowSymLinks MultiViews
+				AllowOverride AuthConfig
+				Order allow,deny
+				allow from all
+		</Directory>
+</VirtualHost>" > /etc/apache2/sites-available/rutorrent.script.conf
 
-			<Directory /var/www/rutorrent/>
-					Options Indexes FollowSymLinks MultiViews
-					AllowOverride AuthConfig
-					Order allow,deny
-					allow from all
-			</Directory>
-	</VirtualHost>" > /etc/apache2/sites-available/rutorrent.script.conf
 	a2ensite rutorrent.script.conf
 fi
 
