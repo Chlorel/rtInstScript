@@ -17,6 +17,14 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
+echo " ----------------------------------------------------------------------------
+'THE BEER-WARE LICENSE' (Revision 42):
+<patrick@kerwood.dk> wrote this script. As long as you retain this notice you
+can do whatever you want with this stuff. If we meet some day, and you think
+this stuff is worth it, you can buy me a beer in return.
+- Patrick Kerwood @ LinuxBloggen.dk
+----------------------------------------------------------------------------"
+echo
 echo
 echo "Is the OS on this server Debian 7 ? If not, quit or continue at own risk."
 echo
@@ -307,4 +315,5 @@ else
 	echo "Visit rutorrent at http://$ip/rutorrent"
 fi
 echo
+echo -e "Patrick Kerwood - http://LinuxBloggen.dk"
 echo -e "Chlorel - Chromosome"
