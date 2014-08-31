@@ -199,14 +199,10 @@ cd mktorrent-1.0
 make USE_OPENSSL=1 USE_LONG_OPTIONS=1 USE_LARGE_FILES=1 
 make install 
 
-#nano  /var/www/rutorrent/plugins/create/conf.php
-#
-#	$useExternal = false;
-#	pathToCreatetorrent = '';
-#
-#	$useExternal = 'mktorrent';
-#	$pathToCreatetorrent = '/usr/local/bin/mktorrent';
-#
+# mktorrent conf
+rm /var/www/rutorrent/plugins/create/conf.php
+wget -O /var/www/rutorrent/plugins/create/conf.php https://raw.github.com/Chlorel/rtInstScript/master/conf/plugins/create/conf.php
+chmod -R 644 /var/www/rutorrent/plugins/create/conf.php
 
 # Installing mediastream plugins
 #
